@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeKUT Dean's Office FAQ System – SCIT</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            color: #222;
+        }
+        header {
+            background: linear-gradient(135deg, #0b5d1e, #2e8b57, #f0c300);
+            color: white;
+            padding: 25px;
+        }
+        header h1 { margin: 0; font-size: 26px; }
+        header p { margin-top: 6px; opacity: 0.9; }
+        nav {
+            background: linear-gradient(90deg, #e8f5e9, #fffde7);
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        nav button {
+            background: none;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #002147;
+        }
+        nav button.active { border-bottom: 3px solid #002147; }
+        main {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .page { display: none; }
+        .page.active { display: block; }
+        .box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button.primary {
+            background: linear-gradient(135deg, #0b5d1e, #f0c300);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .faq {
+            margin: 15px 0;
+            padding: 18px;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .faq h3 { margin: 0 0 10px; color: #003366; }
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<header style="display:flex;align-items:center;gap:20px;">
+    <img src="logo-header.png" alt="Dedan Kimathi University of Technology Logo" style="height:90px;" />
+    <div>
+        <h1>Dedan Kimathi University of Technology</h1>
+        <p>Dean's Office – School of Computer Science & Information Technology</p>
+    </div>
+</header>
+
+<nav>
+    <button onclick="showPage('ask')" class="active">Ask a Question</button>
+    <button onclick="showPage('add')">Add FAQ</button>
+    <button onclick="showPage('view')">View All FAQs</button>
+    <button onclick="showPage('edit')">Edit FAQs</button>
+</nav>
+
+<main>
+    <!-- ASK QUESTION PAGE -->
+    <section id="ask" class="page active">
+        <div class="box">
+            <h2>Ask a Question</h2>
+            <p>Type your question below. The system will return the most relevant answer.</p>
+            <input type="text" id="askInput" placeholder="Enter your question" />
+            <button class="primary" onclick="findAnswer()">Find Answer</button>
+            <div id="askResult"></div>
+        </div>
+    </section>
+
+    <!-- ADD FAQ PAGE -->
+    <section id="add" class="page">
+        <div class="box">
+            <h2>Add a New FAQ</h2>
+            <input type="text" id="newQuestion" placeholder="Enter question" />
+            <textarea id="newAnswer" rows="4" placeholder="Enter answer"></textarea>
+            <button class="primary" onclick="addFAQ()">Save FAQ</button>
+        </div>
+    </section>
+
+    <!-- VIEW ALL FAQ PAGE -->
+    <section id="view" class="page">
+        <div class="box">
+            <h2>All Frequently Asked Questions</h2>
+            <input type="text" id="searchAll" placeholder="Search FAQs" />
+            <div id="faqContainer"></div>
+        </div>
+    </section>
+
+    <!-- EDIT FAQ PAGE -->
+    <section id="edit" class="page">
+        <div class="box">
+            <h2>Edit Existing FAQs</h2>
+            <p>Select a question, edit the answer, and save changes.</p>
+            <select id="editSelect" onchange="loadEdit()" style="width:100%;padding:12px;border-radius:6px;"></select>
+            <textarea id="editAnswer" rows="5" placeholder="Edit answer"></textarea>
+            <button class="primary" onclick="saveEdit()">Save Changes</button>
+        </div>
+    </section>
+</main>
+
+<footer>
+    © 2025 Dedan Kimathi University of Technology – SCIT Dean's Office
+</footer>
+
+<script>
+const defaultFAQs = [
+    // LOCATION & GENERAL
+    {q:"Where is the SCIT Dean's Office located?", a:"The Dean's Office for the School of Computer Science and Information Technology (SCIT) is located within the SCIT building at Dedan Kimathi University of Technology, Nyeri County."},
+    {q:"What are the working hours of the Dean's Office?", a:"The Dean's Office operates from Monday to Friday, 8:00 a.m. to 5:00 p.m., excluding public holidays."},
+    {q:"Who is the Dean of SCIT?", a:"The Dean of SCIT is appointed by the University Management. Students should refer to official DeKUT communication channels for the current office holder."},
+    {q:"Can parents or guardians visit the Dean's Office?", a:"Parents or guardians may visit the Dean's Office only by appointment and when accompanied by the concerned student."},
+
+    // REGISTRATION & ADMISSION
+    {q:"What should I do if I miss semester registration?", a:"Students who miss registration should immediately report to the Dean's Office for guidance and may be required to apply for late registration."},
+    {q:"Can I register for units after the deadline?", a:"Late unit registration is only allowed with approval from the Dean and may attract penalties."},
+    {q:"What happens if I register fewer units than required?", a:"Registering fewer units without approval may delay graduation and should be discussed with the Dean's Office."},
+    {q:"Who approves my unit registration?", a:"Unit registration is approved by the School through the Dean's Office after confirmation of eligibility."},
+
+    // FEES & FINANCIAL MATTERS
+    {q:"Can I attend classes without clearing fees?", a:"Students with fee arrears may be restricted from accessing classes, examinations, or university services."},
+    {q:"Who handles fee-related appeals?", a:"Fee-related appeals are submitted through the Dean's Office and forwarded to the relevant university committees."},
+    {q:"Can I sit exams if I have fee arrears?", a:"Students with outstanding fee balances are normally not allowed to sit examinations unless granted special permission."},
+    {q:"How do I apply for fee payment plans?", a:"Students may apply for a fee payment plan by submitting a formal request through the Dean's Office."},
+
+    // EXAMINATIONS
+    {q:"What should I do if I miss an exam due to illness?", a:"Students must submit a medical report to the Dean's Office within the stipulated time for consideration of a special examination."},
+    {q:"How do I apply for a special exam?", a:"Applications for special exams are made through the Dean's Office using the prescribed university forms."},
+    {q:"What is considered exam irregularity?", a:"Exam irregularities include cheating, possession of unauthorized materials, or impersonation during examinations."},
+    {q:"What happens if I am found guilty of exam malpractice?", a:"Disciplinary action may include cancellation of results, suspension, or expulsion as per university regulations."},
+
+    // DEFERMENT & DISCONTINUATION
+    {q:"How do I apply for deferment of studies?", a:"Students should submit a formal deferment application to the Dean's Office supported by valid documentation."},
+    {q:"What reasons are acceptable for deferment?", a:"Acceptable reasons include medical conditions, financial difficulties, or other serious personal circumstances."},
+    {q:"How long can I defer my studies?", a:"The deferment period is determined by the university and is usually one academic year unless otherwise approved."},
+    {q:"Can I resume studies after deferment?", a:"Yes, students must apply for resumption through the Dean's Office before the deferment period lapses."},
+
+    // ACADEMIC PERFORMANCE
+    {q:"What happens if I fail a unit?", a:"Students who fail a unit may be required to retake or repeat it according to university regulations."},
+    {q:"What is academic probation?", a:"Academic probation is issued to students whose performance falls below the required standards."},
+    {q:"Can I appeal my exam results?", a:"Yes, academic appeals should be submitted formally to the Dean's Office within the specified timeframe."},
+    {q:"How long does an academic appeal take?", a:"The appeal process duration depends on university committees but students are notified once a decision is made."},
+
+    // COURSE & PROGRAMME ISSUES
+    {q:"Can I change my course or programme?", a:"Course or programme changes are subject to approval by the Dean and relevant university authorities."},
+    {q:"What are the requirements for course transfer?", a:"Requirements include meeting minimum entry qualifications and availability of space in the target programme."},
+    {q:"Can I transfer from another university to DeKUT?", a:"Inter-university transfers are handled according to CUE and DeKUT regulations through the Dean's Office."},
+
+    // ATTACHMENT & INDUSTRIAL TRAINING
+    {q:"Who approves industrial attachment?", a:"Industrial attachment matters are coordinated through the School and overseen by the Dean's Office."},
+    {q:"What if I fail to secure an attachment placement?", a:"Students should report to the Dean's Office for guidance and possible assistance."},
+    {q:"Is industrial attachment compulsory?", a:"Yes, industrial attachment is a compulsory requirement for SCIT programmes."},
+
+    // DISCIPLINE
+    {q:"Where do I report disciplinary issues?", a:"Disciplinary matters should be reported to the Dean's Office or relevant university authorities."},
+    {q:"Can the Dean suspend a student?", a:"The Dean may recommend suspension subject to university disciplinary procedures."},
+    {q:"What behaviors attract disciplinary action?", a:"Misconduct includes cheating, absenteeism, destruction of property, or violation of university rules."},
+
+    // CLEARANCE & GRADUATION
+    {q:"What is required for graduation clearance?", a:"Students must clear fees, library, departmental, and hostel obligations before graduation."},
+    {q:"Where do I submit clearance forms?", a:"Clearance forms are submitted through the School Office and Dean's Office."},
+    {q:"What happens if I miss graduation?", a:"Students who miss graduation may graduate in subsequent ceremonies upon application."},
+
+    // GENERAL ADMINISTRATION (EXTENDED)
+    {q:"Can I get an academic recommendation letter from the Dean?", a:"Yes, students may formally request recommendation letters through the Dean's Office."},
+    {q:"Who signs official academic documents?", a:"Official academic documents are signed by authorized university officers including the Dean."},
+    {q:"How do I correct my name on academic records?", a:"Name corrections require supporting documents and approval through the Dean's Office."},
+    {q:"What should I do if my results are missing on the portal?", a:"Students should report missing results to the Dean's Office for investigation."},
+    {q:"Can I access the Dean's Office during holidays?", a:"Access during holidays is limited and subject to staff availability."}
+];
+
+let faqs = JSON.parse(localStorage.getItem('dekut_faqs')) || defaultFAQs;
+
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function renderFAQs(list) {
+    const container = document.getElementById('faqContainer');
+    container.innerHTML = '';
+    list.forEach(f => {
+        const div = document.createElement('div');
+        div.className = 'faq';
+        div.innerHTML = `<h3>${f.q}</h3><p>${f.a}</p>`;
+        container.appendChild(div);
+    });
+}
+
+function addFAQ() {
+    const q = newQuestion.value.trim();
+    const a = newAnswer.value.trim();
+    if(!q || !a) return alert('Both fields are required');
+    faqs.unshift({q,a});
+    localStorage.setItem('dekut_faqs', JSON.stringify(faqs));
+    newQuestion.value=''; newAnswer.value='';
+    alert('FAQ saved successfully');
+}
+
+function findAnswer() {
+    const query = askInput.value.toLowerCase();
+    let best = null;
+    let score = 0;
+    faqs.forEach(f => {
+        let s = 0;
+        query.split(' ').forEach(w=>{
+            if(f.q.toLowerCase().includes(w)) s++;
+        });
+        if(s > score) { score = s; best = f; }
+    });
+    const result = document.getElementById('askResult');
+    if(best && score>0) result.innerHTML = `<div class='faq'><h3>${best.q}</h3><p>${best.a}</p></div>`;
+    else result.innerHTML = '<p>No matching answer found. Please contact the Dean\'s Office.</p>';
+}
+
+searchAll.addEventListener('input', e=>{
+    const t = e.target.value.toLowerCase();
+    renderFAQs(faqs.filter(f=>f.q.toLowerCase().includes(t)||f.a.toLowerCase().includes(t)));
+});
+
+renderFAQs(faqs);
+
+// Populate edit dropdown
+const editSelect = document.getElementById('editSelect');
+function populateEdit() {
+    editSelect.innerHTML = '';
+    faqs.forEach((f,i)=>{
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = f.q;
+        editSelect.appendChild(opt);
+    });
+}
+
+function loadEdit() {
+    const idx = editSelect.value;
+    if(faqs[idx]) editAnswer.value = faqs[idx].a;
+}
+
+function saveEdit() {
+    const idx = editSelect.value;
+    if(!faqs[idx]) return;
+    faqs[idx].a = editAnswer.value.trim();
+    localStorage.setItem('dekut_faqs', JSON.stringify(faqs));
+    alert('FAQ updated successfully');
+}
+
+populateEdit();
+</script>
+</body>
+</html>
